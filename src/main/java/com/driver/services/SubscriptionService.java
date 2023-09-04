@@ -74,7 +74,8 @@ public class SubscriptionService {
        }
 
         User user = optionalUser.get();
-        SubscriptionType type = user.getSubscription().getSubscriptionType();
+       Subscription subscription = user.getSubscription();
+        SubscriptionType type = subscription.getSubscriptionType();
 
         if(type.equals(SubscriptionType.ELITE)){
             throw new Exception("Already the best Subscription");
@@ -85,11 +86,13 @@ public class SubscriptionService {
         else {
             type = SubscriptionType.PRO;
         }
-        int oldPrice = user.getSubscription().getTotalAmountPaid();
-        int noOfScreens = user.getSubscription().getNoOfScreensSubscribed();
+        int oldPrice = subscription.getTotalAmountPaid();
+        int noOfScreens = subscription.getNoOfScreensSubscribed();
         int newPrice = calculateAmount(noOfScreens,type);
-        user.getSubscription().setSubscriptionType(type);
-        user.getSubscription().setTotalAmountPaid(newPrice);
+        subscription.setSubscriptionType(type);
+        subscription.setTotalAmountPaid(newPrice);
+        subscription.setUser(user);
+        user.setSubscription(subscription);
         userRepository.save(user);
         return newPrice-oldPrice;
     }
