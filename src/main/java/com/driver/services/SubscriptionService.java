@@ -68,33 +68,28 @@ public class SubscriptionService {
         //If you are already at an ElITE subscription : then throw Exception ("Already the best Subscription")
         //In all other cases just try to upgrade the subscription and tell the difference of price that user has to pay
         //update the subscription in the repository
-       Optional<User> optionalUser = userRepository.findById(userId);
-       if(!optionalUser.isPresent()){
-           return -1;
-       }
-
-        User user = optionalUser.get();
-       Subscription subscription = user.getSubscription();
-        SubscriptionType type = subscription.getSubscriptionType();
-
-        if(type.equals(SubscriptionType.ELITE)){
+//        return null;
+        User user= userRepository.findById(userId).get();
+        if(user.getSubscription().getSubscriptionType().toString().equals("ELITE")){
             throw new Exception("Already the best Subscription");
-        } else if (type.equals(SubscriptionType.PRO)) {
-            type = SubscriptionType.ELITE;
+        }
 
+        Subscription subscription=user.getSubscription();
+        Integer previousFair=subscription.getTotalAmountPaid();
+        Integer currentFair;
+        if(subscription.getSubscriptionType().equals(SubscriptionType.BASIC)){
+            subscription.setSubscriptionType(SubscriptionType.PRO);
+            currentFair =previousFair+300+(50*subscription.getNoOfScreensSubscribed());
+        }else {
+            subscription.setSubscriptionType(SubscriptionType.ELITE);
+            currentFair=previousFair+200+(100*subscription.getNoOfScreensSubscribed());
         }
-        else {
-            type = SubscriptionType.PRO;
-        }
-        int oldPrice = subscription.getTotalAmountPaid();
-        int noOfScreens = subscription.getNoOfScreensSubscribed();
-        int newPrice = calculateAmount(noOfScreens,type);
-        subscription.setSubscriptionType(type);
-        subscription.setTotalAmountPaid(newPrice);
-        subscription.setUser(user);
+
+        subscription.setTotalAmountPaid(currentFair);
         user.setSubscription(subscription);
-        userRepository.save(user);
-        return newPrice-oldPrice;
+        subscriptionRepository.save(subscription);
+
+        return currentFair-previousFair;
     }
 
     public Integer calculateTotalRevenueOfHotstar(){
@@ -102,12 +97,12 @@ public class SubscriptionService {
         //We need to find out total Revenue of hotstar : from all the subscriptions combined
         //Hint is to use findAll function from the SubscriptionDb
         List<Subscription> subscriptionList = subscriptionRepository.findAll();
-        int revenue = 0;
-        for(Subscription subscription:subscriptionList){
-            revenue += subscription.getTotalAmountPaid();
-        }
 
-        return  revenue;
+        Integer totalRevenue = 0;
+        for(Subscription subscription : subscriptionList){
+            totalRevenue += subscription.getTotalAmountPaid();
+        }
+        return totalRevenue;
     }
 
 }
