@@ -44,7 +44,7 @@ public class UserService {
         int count = 0;
         for(WebSeries web:webSeriesList){
             if(web.getSubscriptionType().equals(type)){
-                if(web.getAgeLimit()<=age)count++;
+                if(web.getAgeLimit()>=age)count++;
             }
         }
 
