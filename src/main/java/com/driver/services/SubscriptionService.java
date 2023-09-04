@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SubscriptionService {
@@ -31,11 +32,17 @@ public class SubscriptionService {
         int noOfScreens = subscriptionEntryDto.getNoOfScreensRequired();
         SubscriptionType type = subscriptionEntryDto.getSubscriptionType();
         int totalAmount = calculateAmount(noOfScreens,type);
-        Subscription subscription = new Subscription(type,
-                noOfScreens,date,totalAmount);
-        User user = userRepository.findById(subscriptionEntryDto.getUserId()).get();
-        subscription.setUser(user);
+        Subscription subscription = new Subscription(type,noOfScreens,date,totalAmount);
+
+        Optional<User> optionalUser = userRepository.findById(subscriptionEntryDto.getUserId());
+        if(!optionalUser.isPresent()){
+            return -1;
+        }
+
+        User user = optionalUser.get();
+
         Subscription subscription1 = subscriptionRepository.save(subscription);
+        subscription1.setUser(user);
         user.setSubscription(subscription1);
         userRepository.save(user);
 
@@ -51,7 +58,7 @@ public class SubscriptionService {
             price = 800 +(250*noOfScreens);
         }
         else {
-            price = 1000 +(300*noOfScreens);
+            price = 1000 +(350*noOfScreens);
         }
         return price;
     }
@@ -60,8 +67,14 @@ public class SubscriptionService {
         //If you are already at an ElITE subscription : then throw Exception ("Already the best Subscription")
         //In all other cases just try to upgrade the subscription and tell the difference of price that user has to pay
         //update the subscription in the repository
-        User user = userRepository.findById(userId).get();
+       Optional<User> optionalUser = userRepository.findById(userId);
+       if(!optionalUser.isPresent()){
+           return -1;
+       }
+
+        User user = optionalUser.get();
         SubscriptionType type = user.getSubscription().getSubscriptionType();
+
         if(type.equals(SubscriptionType.ELITE)){
             throw new Exception("Already the best Subscription");
         } else if (type.equals(SubscriptionType.PRO)) {
@@ -87,10 +100,10 @@ public class SubscriptionService {
         List<Subscription> subscriptionList = subscriptionRepository.findAll();
         int revenue = 0;
         for(Subscription subscription:subscriptionList){
-            revenue+=subscription.getTotalAmountPaid();
+            revenue += subscription.getTotalAmountPaid();
         }
 
-        return revenue;
+        return  revenue;
     }
 
 }
