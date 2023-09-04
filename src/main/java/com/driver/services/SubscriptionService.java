@@ -40,9 +40,10 @@ public class SubscriptionService {
         }
 
         User user = optionalUser.get();
+        subscription.setUser(user);
 
         Subscription subscription1 = subscriptionRepository.save(subscription);
-        subscription1.setUser(user);
+
         user.setSubscription(subscription1);
         userRepository.save(user);
 
