@@ -17,9 +17,9 @@ public class ProductionHouseService {
         ProductionHouse productionHouse = new ProductionHouse(productionHouseEntryDto.getName());
 
         productionHouse.setRatings(0);
-        productionHouseRepository.save(productionHouse);
+        ProductionHouse productionHouse1 = productionHouseRepository.save(productionHouse);
 
-        return  productionHouse.getId();
+        return  productionHouse1.getId();
     }
 
 
