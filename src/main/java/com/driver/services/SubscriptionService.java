@@ -30,7 +30,7 @@ public class SubscriptionService {
         Date date = java.sql.Date.valueOf(LocalDate.now());
         int noOfScreens = subscriptionEntryDto.getNoOfScreensRequired();
         SubscriptionType type = subscriptionEntryDto.getSubscriptionType();
-        Integer totalAmount = calculateAmount(noOfScreens,type);
+        int totalAmount = calculateAmount(noOfScreens,type);
         Subscription subscription = new Subscription(type,
                 noOfScreens,date,totalAmount);
         User user = userRepository.findById(subscriptionEntryDto.getUserId()).get();
@@ -43,8 +43,8 @@ public class SubscriptionService {
 
         return totalAmount;
     }
-    public Integer calculateAmount(int noOfScreens,SubscriptionType type){
-        Integer price = 0;
+    public int calculateAmount(int noOfScreens,SubscriptionType type){
+        int price ;
         if(type.equals(SubscriptionType.BASIC)){
             price = 500 +(200*noOfScreens);
         } else if (type.equals(SubscriptionType.PRO)) {
@@ -71,9 +71,9 @@ public class SubscriptionService {
         else {
             type = SubscriptionType.PRO;
         }
-        Integer oldPrice = user.getSubscription().getTotalAmountPaid();
+        int oldPrice = user.getSubscription().getTotalAmountPaid();
         int noOfScreens = user.getSubscription().getNoOfScreensSubscribed();
-        Integer newPrice = calculateAmount(noOfScreens,type);
+        int newPrice = calculateAmount(noOfScreens,type);
         user.getSubscription().setSubscriptionType(type);
         user.getSubscription().setTotalAmountPaid(newPrice);
         userRepository.save(user);
@@ -85,7 +85,7 @@ public class SubscriptionService {
         //We need to find out total Revenue of hotstar : from all the subscriptions combined
         //Hint is to use findAll function from the SubscriptionDb
         List<Subscription> subscriptionList = subscriptionRepository.findAll();
-        Integer revenue = 0;
+        int revenue = 0;
         for(Subscription subscription:subscriptionList){
             revenue+=subscription.getTotalAmountPaid();
         }
