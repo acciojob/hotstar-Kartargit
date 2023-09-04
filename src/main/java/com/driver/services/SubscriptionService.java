@@ -2,6 +2,7 @@ package com.driver.services;
 
 
 import com.driver.EntryDto.SubscriptionEntryDto;
+import com.driver.Transformers.SubscriptionTransform;
 import com.driver.model.Subscription;
 import com.driver.model.SubscriptionType;
 import com.driver.model.User;
@@ -28,41 +29,43 @@ public class SubscriptionService {
     public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto){
 
         //Save The subscription Object into the Db and return the total Amount that user has to pay
-        Date date = java.sql.Date.valueOf(LocalDate.now());
-        int noOfScreens = subscriptionEntryDto.getNoOfScreensRequired();
-        SubscriptionType type = subscriptionEntryDto.getSubscriptionType();
-        int totalAmount = calculateAmount(noOfScreens,type);
-        Subscription subscription = new Subscription(type,noOfScreens,date,totalAmount);
+        User user = userRepository.findById(subscriptionEntryDto.getUserId()).get();
 
-        Optional<User> optionalUser = userRepository.findById(subscriptionEntryDto.getUserId());
-        if(!optionalUser.isPresent()){
-            return -1;
+//        return null;
+        Subscription subscription = SubscriptionTransform.convertDtoToEntity(subscriptionEntryDto);
+        SubscriptionType subscriptionType = subscription.getSubscriptionType();
+        int noOfScreen = subscription.getNoOfScreensSubscribed();
+
+        int priceOdSubscription = 0;
+
+        if(subscriptionType.equals(SubscriptionType.BASIC)){
+            priceOdSubscription = 500 + (200 * noOfScreen);
+        }else if(subscriptionType.equals(SubscriptionType.PRO)){
+            priceOdSubscription = 800 + (250 * noOfScreen);
+        }else{
+            priceOdSubscription = 1000 + (350 * noOfScreen);
         }
-
-        User user = optionalUser.get();
+        subscription.setTotalAmountPaid(priceOdSubscription);
         subscription.setUser(user);
+        Date date = new Date();
+        subscription.setStartSubscriptionDate(date);
 
-        Subscription subscription1 = subscriptionRepository.save(subscription);
+        user.setSubscription(subscription);
 
-        user.setSubscription(subscription1);
-        userRepository.save(user);
-
-
-
-        return totalAmount;
+        return subscription.getTotalAmountPaid();
     }
-    public int calculateAmount(int noOfScreens,SubscriptionType type){
-        int price ;
-        if(type.equals(SubscriptionType.BASIC)){
-            price = 500 +(200*noOfScreens);
-        } else if (type.equals(SubscriptionType.PRO)) {
-            price = 800 +(250*noOfScreens);
-        }
-        else {
-            price = 1000 +(350*noOfScreens);
-        }
-        return price;
-    }
+//    public int calculateAmount(int noOfScreens,SubscriptionType type){
+//        int price ;
+//        if(type.equals(SubscriptionType.BASIC)){
+//            price = 500 +(200*noOfScreens);
+//        } else if (type.equals(SubscriptionType.PRO)) {
+//            price = 800 +(250*noOfScreens);
+//        }
+//        else {
+//            price = 1000 +(350*noOfScreens);
+//        }
+//        return price;
+//    }
     public Integer upgradeSubscription(Integer userId)throws Exception{
 
         //If you are already at an ElITE subscription : then throw Exception ("Already the best Subscription")
